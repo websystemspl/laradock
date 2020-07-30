@@ -18,6 +18,14 @@ RUN apk update \
     && apk add --no-cache openssl \
     && apk add --no-cache bash
 
+# create a folder for the keys
+RUN mkdir /etc/nginx/ssl 2> /dev/null
+
+# generate the keys for your local domain
+RUN openssl genrsa -out "/etc/nginx/ssl/caestaging.local.key" 2048 \
+    && openssl req -new -key "/etc/nginx/ssl/caestaging.local.key" -out "/etc/nginx/ssl/caestaging.local.csr" -subj "/CN=caestaging.local/O=caestaging.local/C=UK" \
+    && openssl x509 -req -days 365 -in "/etc/nginx/ssl/caestaging.local.csr" -signkey "/etc/nginx/ssl/caestaging.local.key" -out "/etc/nginx/ssl/caestaging.local.crt"
+
 RUN apk add --no-cache curl
 
 RUN set -x ; \
@@ -41,4 +49,4 @@ ADD ./startup.sh /opt/startup.sh
 RUN sed -i 's/\r//g' /opt/startup.sh
 CMD ["/bin/bash", "/opt/startup.sh"]
 
-EXPOSE 80 81 443
+EXPOSE 80 81 443 3000
